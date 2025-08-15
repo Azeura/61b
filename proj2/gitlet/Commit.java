@@ -2,7 +2,11 @@ package gitlet;
 
 // TODO: any imports you need here
 
-import java.util.Date; // TODO: You'll likely use this in this class
+import java.io.File;
+import java.io.Serializable;
+import java.security.Timestamp;
+import java.util.*;
+
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -10,7 +14,7 @@ import java.util.Date; // TODO: You'll likely use this in this class
  *
  *  @author TODO
  */
-public class Commit {
+public class Commit implements Serializable {
     /**
      * TODO: add instance variables here.
      *
@@ -21,6 +25,21 @@ public class Commit {
 
     /** The message of this Commit. */
     private String message;
+    private Date time;
+    private Map<String,String> TrackedFiles;
+    private List<String>parents;
 
     /* TODO: fill in the rest of this class. */
+    Commit(String msg, Date tm, String iid, Map fileTracked,List<String> pare) {
+        this.message = msg;
+        this.time= tm;
+        this.TrackedFiles = fileTracked;
+        this.parents = pare;
+    }
+
+    void saveCommit(String id) {
+        File commitFileName = Utils.join(Repository.CWD, id);
+        Utils.writeObject(commitFileName,this);
+    }
+
 }
