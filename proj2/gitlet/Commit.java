@@ -7,6 +7,8 @@ import java.io.Serializable;
 import java.security.Timestamp;
 import java.util.*;
 
+import static gitlet.Utils.readObject;
+
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -29,12 +31,11 @@ public class Commit implements Serializable {
     private Map<String,String> TrackedFiles;
     private List<String>parents;
 
-    /* TODO: fill in the rest of this class. */
-    Commit(String msg, Date tm, String iid, Map fileTracked,List<String> pare) {
+    Commit(String msg, Date tm, Map fileTracked,String pare) {
         this.message = msg;
         this.time= tm;
         this.TrackedFiles = fileTracked;
-        this.parents = pare;
+        this.parents.add(pare);
     }
 
     void saveCommit(String id) {
@@ -42,4 +43,66 @@ public class Commit implements Serializable {
         Utils.writeObject(commitFileName,this);
     }
 
+    public void changeMeta(String msg, Date tm,String pare) {
+        this.message = msg;
+        this.time= tm;
+        this.parents.add(pare);
+    }
+
+
+    boolean isEmpty() {
+        if (this.TrackedFiles.isEmpty()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // get this commit tracked files
+    public Map getTrackedFiles(){
+        return this.TrackedFiles;
+    }
+
+    //get the string id commit tracked files
+    public Map getTrackedFiles(String id){
+        File parentCommit = Utils.join(Repository.CWD, id);
+        Commit parent = readObject(parentCommit,Commit.class);
+        return parent.getTrackedFiles();
+    }
+
+    // get first parent id
+    public String getFirstParentID() {
+        if (parents.isEmpty()) {
+            return null;
+        }
+        return parents.get(0);
+    }
+
+    public Commit loadCommit(String id){
+        File parentCommit = Utils.join(Repository.CWD, id);
+        Commit parent = readObject(parentCommit,Commit.class);
+        return parent;
+    }
+
+
+    // commit process, after check index and commit msg if empty
+    public void updateMap(Stage index) {
+        Map<String, String> newFileMap = new HashMap<>();
+        String parentID = this.getFirstParentID();
+        Commit parentCom = loadCommit(parentID);
+        if (!this.parents.isEmpty() && parentCom.isEmpty()) {
+            newFileMap.putAll(parentCom.getTrackedFiles());
+        }
+
+        newFileMap.putAll(index.getStagedForAddition());
+
+        for (String fileToRemove : index.getStagedForRemoval().keySet()) {
+            newFileMap.remove(fileToRemove);
+
+        this.TrackedFiles = newFileMap;
+
+        this.time = new Date(0L);
+        index.clear();
+        }
+    }
 }

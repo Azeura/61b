@@ -25,13 +25,17 @@ public class Repository {
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
+    public static File Head = join(GITLET_DIR,"head.txt");
+    public static File Master = join(GITLET_DIR,"Master.txt");
+
     /*
     * .gitlet
      /blobs
      /commits
      /refs
-     /index
+     index
     * */
+    /* git init */
     public static void setupPersistency() throws IOException {
         if (!GITLET_DIR.exists()) {
             System.out.println("A Gitlet version-control system already exists in the current directory.");
@@ -46,27 +50,46 @@ public class Repository {
         Commits.mkdir();
         Refs.mkdir();
         Index.createNewFile();
+        Head.createNewFile();
+        Master.createNewFile();
         initCommit();
         Stage thisStage = new Stage();
         thisStage.save();
 
     }
-
+    /*git init helper method*/
     public static void initCommit() {
         String msg = "initial commit";
         Date tm = new Date(0L);
-        String iid = null;
         Map<String, String> fileTracked = new HashMap<>();
-        List<String> parents = new ArrayList<>();
-        Commit firstCommit = new Commit(msg, tm, iid, fileTracked, parents);
+        String parents = null;
+        Commit firstCommit = new Commit(msg, tm, fileTracked, parents);
         String shaValue = sha1(firstCommit);
+        writeContents(Master, shaValue);
+        writeContents(Head, shaValue);
         firstCommit.saveCommit(shaValue);
     }
 
-    public static void addCommit() {
+    /*git commit*/
+    public static void addCommit(String paraMsg) throws IOException, ClassNotFoundException {
 
+        String msg = paraMsg;
+        if (paraMsg == null || paraMsg.trim().isEmpty()) {
+            System.out.println("Commit failed: Please enter a commit message.");
+        }
+        Date tm = new Date(0L);
+        Map<String, String> fileTracked = new HashMap<>();
+        Commit parentCommit = loadHead();
+        Stage nowStage = Stage.load();
+        if (nowStage.isEmpty()) { // check if stage area empty
+            System.out.println(""); // error message no content in index
+            System.exit(01); //exit
+        }
+        parentCommit.updateMap(nowStage);
+        parentCommit.changeMeta(paraMsg, tm, Head.getPath() );
     }
 
+    /*git add*/
     public static void addIndex(String fileName) throws IOException, ClassNotFoundException {
         File addFile = Utils.join(CWD, fileName);
         if ( !addFile.exists()  ) {
@@ -80,6 +103,7 @@ public class Repository {
         addStage.addFile(filePath, blobHash);
     }
 
+    /*git rm*/
     public static void rmIndex(String fileName) throws IOException, ClassNotFoundException {
         File rmFile = Utils.join(CWD, fileName);
         if ( !rmFile.exists()  ) {
@@ -90,6 +114,12 @@ public class Repository {
         String blobHash = sha1(rmFile);
         Stage rmStage = Stage.load();
         rmStage.addFile(filePath, blobHash);
+    }
+
+    // helper method
+    // load the head commit object
+    static public Commit loadHead() {
+        return readObject(Head,Commit.class);
     }
 
 }

@@ -19,7 +19,7 @@ public class Main {
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
-                Repository.initCommit();
+                Repository.setupPersistency();
                 break;
             case "add":
                 Repository.addIndex(args[1]);
@@ -27,6 +27,7 @@ public class Main {
             case "rm":
                 Repository.rmIndex(args[1]);
             case "commit":
+                Repository.addCommit(args[1]);
                 break;
             case "checkout":
                 break;
