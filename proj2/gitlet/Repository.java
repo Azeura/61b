@@ -85,8 +85,14 @@ public class Repository {
             System.out.println(""); // error message no content in index
             System.exit(01); //exit
         }
+        if ( parentCommit == null ) {
+            System.out.println("not init yet ");
+            System.exit(01);
+        }
         parentCommit.updateMap(nowStage);
         parentCommit.changeMeta(paraMsg, tm, Head.getPath() );
+        String shaValue = sha1(parentCommit);
+        parentCommit.saveCommit(shaValue);
     }
 
     /*git add*/

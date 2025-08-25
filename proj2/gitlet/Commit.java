@@ -63,36 +63,32 @@ public class Commit implements Serializable {
         return this.TrackedFiles;
     }
 
-    //get the string id commit tracked files
-    public Map getTrackedFiles(String id){
-        File parentCommit = Utils.join(Repository.CWD, id);
-        Commit parent = readObject(parentCommit,Commit.class);
-        return parent.getTrackedFiles();
-    }
+//    //get the string id commit tracked files
+//    public Map getTrackedFiles(String id){
+//        File parentCommit = Utils.join(Repository.CWD, id);
+//        Commit parent = readObject(parentCommit,Commit.class);
+//        return parent.getTrackedFiles();
+//    } comment it for i think commit shouldnt care other commit
 
-    // get first parent id
-    public String getFirstParentID() {
-        if (parents.isEmpty()) {
-            return null;
-        }
-        return parents.get(0);
-    }
+//    // get first parent id
+//    public String getFirstParentID() {
+//        if (parents.isEmpty()) {
+//            return null;
+//        }
+//        return parents.get(0);
+//    } comment it for i think commit shouldnt care other commit
 
-    public Commit loadCommit(String id){
-        File parentCommit = Utils.join(Repository.CWD, id);
-        Commit parent = readObject(parentCommit,Commit.class);
-        return parent;
-    }
+//    public Commit loadCommit(String id){
+//        File parentCommit = Utils.join(Repository.CWD, id);
+//        Commit parent = readObject(parentCommit,Commit.class);
+//        return parent;
+//    } comment it for i think commit shouldnt care other commit
 
 
     // commit process, after check index and commit msg if empty
     public void updateMap(Stage index) {
         Map<String, String> newFileMap = new HashMap<>();
-        String parentID = this.getFirstParentID();
-        Commit parentCom = loadCommit(parentID);
-        if (!this.parents.isEmpty() && parentCom.isEmpty()) {
-            newFileMap.putAll(parentCom.getTrackedFiles());
-        }
+
 
         newFileMap.putAll(index.getStagedForAddition());
 
