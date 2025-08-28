@@ -16,16 +16,13 @@ import static gitlet.Utils.*;
  *  @author TODO
  */
 public class Repository {
-    /**
-     * TODO: add instance variables here.
-     */
 
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
-    public static File Head = join(GITLET_DIR,"head.txt");
+    public static File Head = join(GITLET_DIR,"Head.txt");
     public static File Master = join(GITLET_DIR,"Master.txt");
 
     /*
@@ -59,11 +56,14 @@ public class Repository {
     }
     /*git init helper method*/
     public static void initCommit() {
+        // create init commit
         String msg = "initial commit";
         Date tm = new Date(0L);
         Map<String, String> fileTracked = new HashMap<>();
         String parents = null;
         Commit firstCommit = new Commit(msg, tm, fileTracked, parents);
+
+        // save commit and set head and master
         String shaValue = sha1(firstCommit);
         writeContents(Master, shaValue);
         writeContents(Head, shaValue);
@@ -89,10 +89,14 @@ public class Repository {
             System.out.println("not init yet ");
             System.exit(01);
         }
+        // update tracked files map and serialize new commit
         parentCommit.updateMap(nowStage);
         parentCommit.changeMeta(paraMsg, tm, Head.getPath() );
         String shaValue = sha1(parentCommit);
         parentCommit.saveCommit(shaValue);
+        // update the pointer
+        writeContents(, shaValue);
+        writeContents(, shaValue);
     }
 
     /*git add*/
@@ -126,6 +130,68 @@ public class Repository {
     // load the head commit object
     static public Commit loadHead() {
         return readObject(Head,Commit.class);
+    }
+
+    // git checkout
+    public void checkOut(String fileName) {
+        File fileToCheck = Utils.join(CWD,fileName + ".txt");
+        if (fileName == null && fileToCheck.exists() ) {
+            System.out.println("no file name or not in work dir");
+        }
+
+        // file checkout to current commit
+        Commit Head = loadHead();
+        File fileChecked = Head.getFile(fileName);
+        String fileContents = readContentsAsString(fileChecked);
+        writeContents(fileToCheck,fileContents);
+
+    }
+
+    public static void log() {
+        // Start with the commit ID stored in the HEAD file.
+        String currentCommitId = readContentsAsString(Head).trim();
+
+        // Loop backwards through the commit chain.
+        while (currentCommitId != null && !currentCommitId.isEmpty()) {
+            Commit currentCommit = loadCommitById(currentCommitId);
+            if (currentCommit == null) {
+                break; // Should not happen in a healthy repository.
+            }
+
+            // Print the commit information in the required format.
+            System.out.println("===");
+            System.out.println("commit " + currentCommitId);
+
+            // Format the date string as specified.
+            Date currentDate = currentCommit.getTime();
+            String formattedDate = String.format("Date: %ta %tb %td %tT %tY %tz",
+                    currentDate, currentDate, currentDate,
+                    currentDate, currentDate, currentDate);
+            System.out.println(formattedDate);
+            System.out.println(currentCommit.getMessage());
+            System.out.println(); // Extra newline for spacing.
+
+            // Get the parent of the current commit to continue the loop.
+            List<String> parents = currentCommit.getParents();
+            if (parents != null && !parents.isEmpty()) {
+                currentCommitId = parents.get(0); // Move to the first parent.
+            } else {
+                currentCommitId = null; // Reached the initial commit, which has no parents.
+            }
+        }
+    }
+
+    // helper method
+    public static Commit loadCommitById(String id) {
+        if (id == null || id.isEmpty()) {
+            return null;
+        }
+        File commitFile = join(GITLET_DIR,"Commits", id);
+        if (!commitFile.exists()) {
+            // This is an internal error, so we throw an exception.
+            throw new GitletException("Fatal: Commit with id " + id + " does not exist.");
+        }
+        return readObject(commitFile, Commit.class);
     }
 
 }

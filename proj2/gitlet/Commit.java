@@ -101,4 +101,23 @@ public class Commit implements Serializable {
         index.clear();
         }
     }
+
+    public File getFile(String fileName) {
+        String fileID = this.TrackedFiles.get(fileName);
+        return Utils.join(Repository.GITLET_DIR, "blobs",fileID + ".txt");
+    }
+
+    public String getMessage() {
+        return this.message;
+    }
+
+    public Date getTime() {
+        return this.time;
+    }
+
+    public List<String> getParents() {
+        return this.parents;
+    }
+
+
 }

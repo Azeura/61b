@@ -30,8 +30,12 @@ public class Main {
                 Repository.addCommit(args[1]);
                 break;
             case "checkout":
+                Repository.checkOut(args[1]);
                 break;
             case "branch":
+                break;
+            case "log":
+                Repository.log();
                 break;
         }
     }
