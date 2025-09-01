@@ -37,6 +37,13 @@ public class Main {
             case "log":
                 Repository.log();
                 break;
+            case "global-log":
+                Repository.gLog();
+            case "find":
+                Repository.find(args[1]);
+            case "status":
+                Repository.status();
+
         }
     }
 }

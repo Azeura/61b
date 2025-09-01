@@ -31,15 +31,16 @@ public class Commit implements Serializable {
     private Map<String,String> TrackedFiles;
     private List<String>parents;
 
-    Commit(String msg, Date tm, Map fileTracked,String pare) {
+    Commit(String msg, Date tm, Map<String, String> fileTracked,String pare) {
         this.message = msg;
         this.time= tm;
         this.TrackedFiles = fileTracked;
+        this.parents = new ArrayList<String>();
         this.parents.add(pare);
     }
 
     void saveCommit(String id) {
-        File commitFileName = Utils.join(Repository.CWD, id);
+        File commitFileName = Utils.join(Repository.GITLET_DIR,"commits",id);
         Utils.writeObject(commitFileName,this);
     }
 
