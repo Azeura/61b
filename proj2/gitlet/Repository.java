@@ -73,8 +73,7 @@ public class Repository {
         Commit firstCommit = new Commit(msg, tm, fileTracked, parents);
 
 //        // save commit and set head and master
-        byte[] objBtyes = serialize(firstCommit);
-        String shaValue = sha1(objBtyes);
+        String shaValue = sha1ByObject(firstCommit);
         writeContents(Master, shaValue);
         writeContents(Head, shaValue);
         firstCommit.saveCommit(shaValue);
@@ -102,36 +101,41 @@ public class Repository {
         // update tracked files map and serialize new commit
         parentCommit.updateMap(nowStage);
         parentCommit.changeMeta(paraMsg, tm, Head.getPath() );
-        String shaValue = sha1(parentCommit);
+        String shaValue = sha1ByObject(parentCommit);
         parentCommit.saveCommit(shaValue);
         // update the pointer
-//        writeContents(, shaValue);
-//        writeContents(, shaValue);
+       writeContents(Head, shaValue);
+       writeContents(Master, shaValue);
     }
 
     /*git add*/
     public static void addIndex(String fileName) throws IOException, ClassNotFoundException {
-        File addFile = Utils.join(CWD, fileName); // check if it exits in cwd
-        if ( !addFile.exists()  ) {
+        File fileToAdd = Utils.join(CWD, fileName); // absolute path
+        if ( !fileToAdd.exists()  ) {
             System.out.println("File does not exist.");
-        }
-        /*System.exit(0);*/
+            System.exit(0)
 
-        String filePath = addFile.getPath(); // absolute path of file to add
-        String blobHash = sha1(addFile); // !!! this is mistake use of sha()
+        }
+
+        // update stage for add and serialize blob 
+        String filePath = fileToAdd.getPath(); // path of file to add
+        String blobHash = sha1(readContentsAsString(fileToAdd)); 
         Stage addStage = Stage.load();
-        addStage.addFile(filePath, blobHash);
+        addStage.addFile(filePath, blobHash); // here is relative path
+        File blob = join(Blobs,blobHash,".txt");
+        blob.createNewFile();
+        writeContents(blob,readContentsAsString(fileToAdd));
     }
 
     /*git rm*/
     public static void rmIndex(String fileName) throws IOException, ClassNotFoundException {
-        File rmFile = Utils.join(CWD, fileName);
-        if ( !rmFile.exists()  ) {
+        File fileToRm = Utils.join(CWD, fileName);
+        if ( !fileToRm.exists()  ) {
             System.out.println("No reason to remove the file.");
             System.exit(0);
         }
-        String filePath = rmFile.getPath();
-        String blobHash = sha1(rmFile);
+        String filePath = fileToRm.getPath();
+        String blobHash = sha1ByObject(rmFile);
         Stage rmStage = Stage.load();
         rmStage.addFile(filePath, blobHash);
     }
@@ -151,7 +155,7 @@ public class Repository {
 
         // file checkout to current commit
         Commit Head = loadHead();
-        File fileChecked = Head.getFile(fileName);
+        File fileChecked = Head.getBlobFile(fileName);
         String fileContents = readContentsAsString(fileChecked);
         writeContents(fileToCheck,fileContents);
 
@@ -205,11 +209,11 @@ public class Repository {
         for (Map.Entry<String, String> entry : checkedOutBranchFiles.entrySet()) {
             String fileName = entry.getKey();
             String blobId = entry.getValue();
-            File blobFile = getBlobFile(blobId); // Helper to find the blob in .gitlet/objects
+            File blobFile = join(Blobs,blobId,".txt"); // Helper to find the blob in .gitlet/objects
             byte[] blobContent = new byte[0]; 
             BlobContent = Utils.readContents(blobFile);
             File destFile = new File(CWD, fileName);
-            Utils.writeContents(destFile, (Object) blobContent);
+            Utils.writeContents(destFile,  BlobContent);
         }
 
 
@@ -351,9 +355,15 @@ public class Repository {
         // untracked files 
     }
 
-    public static File getBlobFile( String fileId) {
-        return join(Blobs,fileId);
-    }
+    // public static File getBlobFile( String fileId) {
+    //     return join(Blobs,fileId);
+    // }
+
+    // helper method
+    public static String sha1ByObject(Object obj) {
+        byte[] objBtyes = serialize(obj);
+        return sha1(objBtyes);
+    } 
 
 
 
