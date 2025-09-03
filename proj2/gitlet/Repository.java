@@ -166,6 +166,15 @@ public class Repository {
 
     }
 
+    public static void checkOut(String commitId, String fileName) {
+        File cwdFile = join(CWD,fileName,".txt");
+        // check if commit exits and file exits in commit map 
+        Commit targetCommit = loadCommitById(commitId);
+        File targetBlob = targetBlob.getBlobFile(fileName);
+        String targetContent readContentsAsString(targetBlob);
+        writeContents(cwdFile,targetContent);
+    }
+
     public static void checkOut(string branchName) {
         // check if this branch exits 
         File branch = join(Refs, branchName,".txt");
