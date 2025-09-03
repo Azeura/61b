@@ -22,14 +22,14 @@ public class Repository {
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
-    public static File Refs = join(GITLET_DIR,"refs");
+    public static final File Refs = join(GITLET_DIR,"refs");
 
-    public static File Head = join(Refs,"Head.txt");
-    public static File Master = join(Refs,"Master.txt");
+    public static final File Head = join(Refs,"Head.txt");
+    public static final File Master = join(Refs,"Master.txt");
 
-    public static File Blobs = join(GITLET_DIR, "blobs");
-    public static File Commits = join(GITLET_DIR,"commits");
-    public static File Index = join(GITLET_DIR,"indice.txt");
+    public static final File Blobs = join(GITLET_DIR, "blobs");
+    public static final File Commits = join(GITLET_DIR,"commits");
+    public static final File Index = join(GITLET_DIR,"indice.txt");
     /*
     * .gitlet
      /blobs
@@ -116,13 +116,13 @@ public class Repository {
             System.exit(0)
 
         }
-
         // update stage for add and serialize blob 
         String filePath = fileToAdd.getPath(); // path of file to add
         String blobHash = sha1(readContentsAsString(fileToAdd)); 
-        Stage addStage = Stage.load();
-        addStage.addFile(filePath, blobHash); // here is relative path
-        File blob = join(Blobs,blobHash,".txt");
+        Stage nowStage = Stage.load();
+        nowStage.addFile(filePath, blobHash); // here is relative path
+        nowStage.save();// update index
+        File blob = join(Blobs,blobHash,".txt"); // save it as a blob
         blob.createNewFile();
         writeContents(blob,readContentsAsString(fileToAdd));
     }
@@ -130,14 +130,18 @@ public class Repository {
     /*git rm*/
     public static void rmIndex(String fileName) throws IOException, ClassNotFoundException {
         File fileToRm = Utils.join(CWD, fileName);
-        if ( !fileToRm.exists()  ) {
-            System.out.println("No reason to remove the file.");
+        if ( !restrictedDelete(fileToRm) ) {
+            System.out.println("No reason to remove the file."); // it exits under cwd
             System.exit(0);
         }
         String filePath = fileToRm.getPath();
         String blobHash = sha1ByObject(rmFile);
-        Stage rmStage = Stage.load();
-        rmStage.addFile(filePath, blobHash);
+        Stage nowStage = Stage.load();
+        nowStage.removeFile(filePath, blobHash);
+        nowStage.save(); // update index 
+        restrictedDelete(fileToRm);// delete in CWD
+        File fileToRmBlob = join(Blobs,blobHash,".txt");
+        restrictedDelete(fileToRmBlob); // delete blob file 
     }
 
     // helper method
@@ -148,14 +152,15 @@ public class Repository {
 
     // git checkout
     public static void checkOut(String fileName) {
-        File fileToCheck = Utils.join(CWD,fileName + ".txt");
+        File fileToCheck = Utils.join(CWD,fileName + ".txt"); 
         if (fileName == null && fileToCheck.exists() ) {
             System.out.println("no file name or not in work dir");
+            Syste.exit(01);
         }
 
         // file checkout to current commit
         Commit Head = loadHead();
-        File fileChecked = Head.getBlobFile(fileName);
+        File fileChecked = Head.getBlobFile(fileName); // the blob file 
         String fileContents = readContentsAsString(fileChecked);
         writeContents(fileToCheck,fileContents);
 
@@ -181,38 +186,39 @@ public class Repository {
         Map<String, String> nowCommitFiles = nowCommit.getTrackedFiles();
         Map<String, String> checkedOutBranchFiles = checkedOutBranch.getTrackedFiles();
         // Iterate through the files in the branch we want to check out.
-        for (String fileName : checkedOutBranchFiles.keySet()) {
+        for (String filePath : checkedOutBranchFiles.keySet()) {
 
             // Check if the file is NOT tracked by the current commit.
-            if (!nowCommitFiles.containsKey(fileName)) {
-                File potentialConflict = new File(fileName);
+            if (!nowCommitFiles.containsKey(filePath)) {
+                File potentialConflict = new File(filePath);
 
                 if (potentialConflict.exists()) {
                     // DANGER! This file is untracked locally but exists in the target branch.
                     // Checking out would overwrite it.
                     System.out.println("There is an untracked file in the way; "
                                      + "delete it, or add and commit it first.");
-                    System.out.println("Untracked file: " + fileName);
+                    System.out.println("Untracked file: " + filePath);
                     System.exit(0); // Exit the program to prevent the checkout.
                 }
             }
         }
 
         // if everything is ok then replace cwd with checked out branch and move head
-        for (String fileName : nowCommitFiles.keySet()) {
-            if (!checkedOutBranchFiles.containsKey(fileName)) {
-                File fileToDelete = new File(CWD, fileName);
+        for (String filePath : nowCommitFiles.keySet()) {
+            if (!checkedOutBranchFiles.containsKey(filePath)) {// key in map is path 
+                File fileToDelete = new File(filePath);
                 Utils.restrictedDelete(fileToDelete);
             }
         }
 
         for (Map.Entry<String, String> entry : checkedOutBranchFiles.entrySet()) {
-            String fileName = entry.getKey();
-            String blobId = entry.getValue();
+            String fileName = entry.getKey();  // relative file path
+            String blobId = entry.getValue();  // blob id 
             File blobFile = join(Blobs,blobId,".txt"); // Helper to find the blob in .gitlet/objects
-            byte[] blobContent = new byte[0]; 
-            BlobContent = Utils.readContents(blobFile);
-            File destFile = new File(CWD, fileName);
+            byte[] BlobContent = new byte[0]; 
+            BlobContent = Utils.readContents(blobFile); // read contents from blob and write it into destination file 
+            File destFile = new File(fileName);
+            destFile.createNewFile();
             Utils.writeContents(destFile,  BlobContent);
         }
 
