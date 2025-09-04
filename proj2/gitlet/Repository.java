@@ -84,23 +84,23 @@ public class Repository {
 
         String msg = paraMsg;
         if (paraMsg == null || paraMsg.trim().isEmpty()) {
-            System.out.println("Commit failed: Please enter a commit message.");
+            System.out.println("Please enter a message.");
         }
         Date tm = new Date(0L);
         Map<String, String> fileTracked = new HashMap<>();
         Commit parentCommit = loadHead();
         Stage nowStage = Stage.load();
         if (nowStage.isEmpty()) { // check if stage area empty
-            System.out.println(""); // error message no content in index
+            System.out.println("No changes added to the commit."); // error message no content in index
             System.exit(01); //exit
         }
         if ( parentCommit == null ) {
-            System.out.println("not init yet ");
+            System.out.println("not init yet.");
             System.exit(01);
         }
         // update tracked files map and serialize new commit
         parentCommit.updateMap(nowStage);
-        parentCommit.changeMeta(paraMsg, tm, Head.getPath() );
+        parentCommit.changeMeta(paraMsg, tm, readContentsAsString(Head) );
         String shaValue = sha1ByObject(parentCommit);
         parentCommit.saveCommit(shaValue);
         // update the pointer
@@ -112,13 +112,21 @@ public class Repository {
     public static void addIndex(String fileName) throws IOException, ClassNotFoundException {
         File fileToAdd = Utils.join(CWD, fileName); // absolute path
         if ( !fileToAdd.exists()  ) {
-            System.out.println("File does not exist.");
+            System.out.println("File does not exist."); 
             System.exit(0)
-
         }
+
+        // check if identical to current commit version
+        Commit currCommit = loadHead();
+        String idOfTrackedFile = currCommit.getTrackedFiles.get(fileToAdd);
+        String blobHash = sha1(readContentsAsString(fileToAdd)); 
+        if (idOfTrackedFile == blobHash) {
+            currCommit.removeFileOnly(fileToAdd);
+\            System.exit(01);
+        }
+
         // update stage for add and serialize blob 
         String filePath = fileToAdd.getPath(); // path of file to add
-        String blobHash = sha1(readContentsAsString(fileToAdd)); 
         Stage nowStage = Stage.load();
         nowStage.addFile(filePath, blobHash); // here is relative path
         nowStage.save();// update index
@@ -152,7 +160,7 @@ public class Repository {
 
     // git checkout
     public static void checkOut(String fileName) {
-        File fileToCheck = Utils.join(CWD,fileName + ".txt"); 
+        File fileToCheck = Utils.join(CWD,fileName); 
         if (fileName == null && fileToCheck.exists() ) {
             System.out.println("no file name or not in work dir");
             Syste.exit(01);
@@ -160,14 +168,14 @@ public class Repository {
 
         // file checkout to current commit
         Commit Head = loadHead();
-        File fileChecked = Head.getBlobFile(fileName); // the blob file 
+        File fileChecked = Head.getBlobFile(fileName); // get blob file 
         String fileContents = readContentsAsString(fileChecked);
         writeContents(fileToCheck,fileContents);
 
     }
 
     public static void checkOut(String commitId, String fileName) {
-        File cwdFile = join(CWD,fileName,".txt");
+        File cwdFile = join(CWD,fileName);
         // check if commit exits and file exits in commit map 
         Commit targetCommit = loadCommitById(commitId);
         File targetBlob = targetBlob.getBlobFile(fileName);
@@ -178,7 +186,7 @@ public class Repository {
     public static void checkOut(string branchName) {
         // check if this branch exits 
         File branch = join(Refs, branchName,".txt");
-        String headCommitId = readContentsAsString(Utils.join(Refs,"Head.txt"));
+        String headCommitId = readContentsAsString(Head);
         String checkedOutBranchId = readContentsAsString(branch);
         if (!branch.exists()) {
             System.out.println("No such branch exists.");
