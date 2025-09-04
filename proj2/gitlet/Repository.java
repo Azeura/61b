@@ -110,23 +110,25 @@ public class Repository {
 
     /*git add*/
     public static void addIndex(String fileName) throws IOException, ClassNotFoundException {
-        File fileToAdd = Utils.join(CWD, fileName); // absolute path
+        File fileToAdd = Utils.join(CWD, fileName);
+        String filePath = fileToAdd.getPath();
         if ( !fileToAdd.exists()  ) {
             System.out.println("File does not exist."); 
-            System.exit(0)
+            System.exit(0);
         }
 
         // check if identical to current commit version
         Commit currCommit = loadHead();
-        String idOfTrackedFile = currCommit.getTrackedFiles.get(fileToAdd);
+        Stage currStage = Stage.load();
+        currCommit.getTrackedFiles().get(filePath);
+        String idOfTrackedFile = (String)currCommit.getTrackedFiles().get(filePath);
         String blobHash = sha1(readContentsAsString(fileToAdd)); 
         if (idOfTrackedFile == blobHash) {
-            currCommit.removeFileOnly(fileToAdd);
-\            System.exit(01);
+            currStage.removeFileOnly(filePath);
+            System.exit(01);
         }
 
         // update stage for add and serialize blob 
-        String filePath = fileToAdd.getPath(); // path of file to add
         Stage nowStage = Stage.load();
         nowStage.addFile(filePath, blobHash); // here is relative path
         nowStage.save();// update index
@@ -143,12 +145,12 @@ public class Repository {
             System.exit(0);
         }
         String filePath = fileToRm.getPath();
-        String blobHash = sha1ByObject(rmFile);
         Stage nowStage = Stage.load();
-        nowStage.removeFile(filePath, blobHash);
+        String blobhash = sha1ByObject(fileToRm);
+        nowStage.removeFile(filePath, blobhash);
         nowStage.save(); // update index 
         restrictedDelete(fileToRm);// delete in CWD
-        File fileToRmBlob = join(Blobs,blobHash,".txt");
+        File fileToRmBlob = join(Blobs,blobhash,".txt");
         restrictedDelete(fileToRmBlob); // delete blob file 
     }
 
@@ -163,7 +165,7 @@ public class Repository {
         File fileToCheck = Utils.join(CWD,fileName); 
         if (fileName == null && fileToCheck.exists() ) {
             System.out.println("no file name or not in work dir");
-            Syste.exit(01);
+            System.exit(01);
         }
 
         // file checkout to current commit
@@ -178,12 +180,12 @@ public class Repository {
         File cwdFile = join(CWD,fileName);
         // check if commit exits and file exits in commit map 
         Commit targetCommit = loadCommitById(commitId);
-        File targetBlob = targetBlob.getBlobFile(fileName);
-        String targetContent readContentsAsString(targetBlob);
+        File targetBlob = targetCommit.getBlobFile(fileName);
+        String targetContent = readContentsAsString(targetBlob);
         writeContents(cwdFile,targetContent);
     }
 
-    public static void checkOut(string branchName) {
+    public static void checkOut(String branchName) throws IOException {
         // check if this branch exits 
         File branch = join(Refs, branchName,".txt");
         String headCommitId = readContentsAsString(Head);
@@ -244,10 +246,10 @@ public class Repository {
 
     // just create a new branch at haed commit 
     public static void branch(String branchName){
-        FIle newBranch = Utils.join(Refs,branchName);
+        File newBranch = Utils.join(Refs,branchName);
 
         try{
-            Files.copy( Head.toPath(), newBranch.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            File.copy( Head.toPath(), newBranch.toPath(), StandardCopyOption.REPLACE_EXISTING);
             System.out.println("Successfully created branch: " + branchName);
 
         } catch (IOException e) {

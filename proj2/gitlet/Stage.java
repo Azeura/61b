@@ -37,6 +37,10 @@ public class Stage implements Serializable {
         stagedForRemoval.put(filePath, blobHash);
     }
 
+    public void removeFileOnly(String filePath) {
+        stagedForAddition.remove(filePath);
+    }
+
     /** Clears both staging areas after a successful commit. */
     public void clear() {
         stagedForAddition.clear();

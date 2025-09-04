@@ -89,7 +89,7 @@ public class Commit implements Serializable {
     // commit process, after check index and commit msg if empty
     public void updateMap(Stage index) {
         Map<String, String> newFileMap = new HashMap<>();
-
+        
 
         newFileMap.putAll(index.getStagedForAddition());
 
@@ -103,9 +103,10 @@ public class Commit implements Serializable {
         }
     }
 
-    public File getFile(String fileName) {
-        String fileID = this.TrackedFiles.get(fileName);
-        return Utils.join(Repository.GITLET_DIR, "blobs",fileID + ".txt");
+    public File getBlobFile(String fileName) {// imcomplete, no error catch 
+        String filePath = Utils.join(Repository.CWD, fileName).getPath(); // get the file relative path
+        String fileID = this.TrackedFiles.get(filePath); // find it in tracked file map  
+        return Utils.join(Repository.Blobs,fileID, ".txt"); //return the blob file 
     }
 
     public String getMessage() {
