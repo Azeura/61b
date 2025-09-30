@@ -30,19 +30,34 @@ public class Main {
                 Repository.addCommit(args[1]);
                 break;
             case "checkout":
-                Repository.checkOut(args[1]);
+                if (args.length == 4 && args[2].equals("--") ) {
+                        Repository.checkOut(args[1],args[3]); // commit id -- file name
+                    } else if  (args.length == 3 && args[1].equals("--")) {
+                        Repository.checkOutFile(args[2]); // -- file name
+                    } //branch 
+                    else if (args.length == 2) {
+                        Repository.checkOutBranch(args[1]);  // branch name
+                    } else {
+                        System.out.println("Incorrect operands");
+                    }          
                 break;
             case "branch":
+                Repository.branch(args[1]);
                 break;
             case "log":
                 Repository.log();
                 break;
             case "global-log":
                 Repository.gLog();
+                break;
             case "find":
                 Repository.find(args[1]);
+                break;
             case "status":
                 Repository.status();
+                break;
+            case "rm -branch":
+                Repository.rmBranch(args[1]);
 
         }
     }
