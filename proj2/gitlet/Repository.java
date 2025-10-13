@@ -38,7 +38,7 @@ public class Repository {
      index
     * */
     /* git init */
-    public static void setupPersistency() {
+    public static void setupPersistency() throws IOException {
         if (checkGitDir()) {
             System.out.println("A Gitlet version-control system already exists in the current directory.");
             System.exit(0);
@@ -59,7 +59,7 @@ public class Repository {
         System.out.println("Init ok.");
     }
     /*git init helper method*/
-    public static void initCommit() {
+    public static void initCommit() throws IOException {
         // create init commit
         String msg = "initial commit";
         Date tm = new Date(0L);
@@ -75,7 +75,7 @@ public class Repository {
     }
 
     /*git commit*/
-    public static void addCommit(String paraMsg) {
+    public static void addCommit(String paraMsg) throws IOException {
         if (!checkGitDir()) {
             System.out.println("Have not init yet.");
             System.exit(0);
@@ -121,7 +121,7 @@ public class Repository {
     }
 
     /*git add*/
-    public static void addIndex(String fileName) {
+    public static void addIndex(String fileName) throws IOException {
         if (!checkGitDir()) {
             System.out.println("Have not init yet.");
             System.exit(0);
@@ -708,7 +708,7 @@ public class Repository {
             System.out.println(); // Extra newline for spacing.
     }
 
-    private static String saveCommit(Commit commit) {
+    private static String saveCommit(Commit commit) throws IOException {
         String shaValue = sha1ByObject(commit);
         File commitFile = join(Commits, shaValue + ".txt");
         commitFile.createNewFile();
@@ -716,7 +716,7 @@ public class Repository {
         return shaValue;
     }
 
-    public static void writeFileFromBlob(String filePath, String blobId) {
+    public static void writeFileFromBlob(String filePath, String blobId) throws IOException {
         File blobFile = formBlobFile(blobId); // Helper to find the blob in .gitlet/objects
         byte[] BlobContent = new byte[0]; 
         BlobContent = Utils.readContents(blobFile); // read contents from blob and write it into destination file 
@@ -750,7 +750,12 @@ public class Repository {
         for (Map.Entry<String, String> entry : checkedOutBranchFiles.entrySet()) {
             String filePath = entry.getKey();  
             String blobId = entry.getValue();  
-            writeFileFromBlob(filePath, blobId ); // write files from target into CWD
+            try {
+                writeFileFromBlob(filePath, blobId);
+            } catch (IOException e) {
+                System.out.println("IOException catght:" + e.getMessage());
+            }
+            // write files from target into CWD
         }
     }
     public static Boolean checkGitDir() {

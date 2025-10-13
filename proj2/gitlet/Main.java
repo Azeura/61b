@@ -11,7 +11,6 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args)  {
-        // TODO: what if args is empty?
         if ( args.length == 0) {
             System.out.println("Please enter a command.");
             System.exit(0);
@@ -19,15 +18,24 @@ public class Main {
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
-                Repository.setupPersistency();
+                try {Repository.setupPersistency() ;
+                } catch (IOException e) {
+                System.out.println("IOException catght:" + e.getMessage());
+            }
                 break;
             case "add":
-                Repository.addIndex(args[1]);
+                try {Repository.addIndex(args[1]) ;
+                } catch (IOException e) {
+                    System.out.println("IOException catght:" + e.getMessage());
+                }
                 break;
             case "rm":
                 Repository.rmIndex(args[1]);
             case "commit":
-                Repository.addCommit(args[1]);
+                try {Repository.addCommit(args[1]) ;
+                } catch (IOException e) {
+                    System.out.println("IOException catght:" + e.getMessage());
+                }
                 break;
             case "checkout":
                 if (args.length == 4 && args[2].equals("--") ) {
