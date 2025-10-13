@@ -56,7 +56,6 @@ public class Repository {
         initCommit();
         Stage thisStage = new Stage();
         thisStage.save();
-        System.out.println("Init ok.");
     }
     /*git init helper method*/
     public static void initCommit() throws IOException {
@@ -115,8 +114,6 @@ public class Repository {
         nowStage.save();
         // update the pointer file content(shavalue of commit)
        writeContents(currBranchFile, shaValue);
-       System.out.println("New commit added.");
-       System.out.println("Commit id is: " + shaValue);
 
     }
 
@@ -152,7 +149,6 @@ public class Repository {
         File blob = formBlobFile(blobHash);
         blob.createNewFile();
         writeContents(blob,readContentsAsString(fileToAdd));
-        System.out.println("Add file successfully.");
     }
 
     /*git rm*/
@@ -243,7 +239,6 @@ public class Repository {
         nowStage.save();
         writeContents(Head,branch.getPath());
 
-        System.out.println("checkout branch successfully");
     }
 
     // just create a new branch at haed commit 
@@ -260,7 +255,6 @@ public class Repository {
 
         String currentCommitId = loadHeadId();
         Utils.writeContents(newBranch,currentCommitId);
-        System.out.println("Successfully create branch");
     }
 
     public static void rmBranch(String branchName) {
@@ -281,7 +275,7 @@ public class Repository {
 
         // delete the ref file
         if (restrictedDelete(targetBranchFile) ) {
-            System.out.println("remove branch successfully.");
+            System.exit(1);
         } else {
             System.out.println("failed to rm branch.");
         }
@@ -301,7 +295,6 @@ public class Repository {
             writeContents(currBranch, commitId);
             Stage nowStage = Stage.load();
             nowStage.clear();
-            System.out.println("checkout to that commid successfully.");
         } else {
             System.out.println("Reset failed due to untracked files.");
         }
@@ -579,8 +572,6 @@ public class Repository {
             System.out.println("Encountered a merge conflict.");
         }
 
-        System.out.println("Merge complete. Please commit to finalize.");
- 
     }
 
     // helper method
