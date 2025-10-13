@@ -38,7 +38,7 @@ public class Repository {
      index
     * */
     /* git init */
-    public static void setupPersistency() throws IOException {
+    public static void setupPersistency() {
         if (checkGitDir()) {
             System.out.println("A Gitlet version-control system already exists in the current directory.");
             System.exit(0);
@@ -59,7 +59,7 @@ public class Repository {
         System.out.println("Init ok.");
     }
     /*git init helper method*/
-    public static void initCommit() throws IOException {
+    public static void initCommit() {
         // create init commit
         String msg = "initial commit";
         Date tm = new Date(0L);
@@ -75,7 +75,7 @@ public class Repository {
     }
 
     /*git commit*/
-    public static void addCommit(String paraMsg) throws IOException, ClassNotFoundException {
+    public static void addCommit(String paraMsg) {
         if (!checkGitDir()) {
             System.out.println("Have not init yet.");
             System.exit(0);
@@ -288,7 +288,7 @@ public class Repository {
 
     }
 
-    public static void reset(String commitId) throws IOException, ClassNotFoundException {
+    public static void reset(String commitId) {
         if (!checkGitDir()) {
             System.out.println("Have not init yet.");
         }
@@ -596,7 +596,7 @@ public class Repository {
         return readObject(commitFile, Commit.class);
     }
 
-    public static boolean checkOutCommit (String checkedOutBranchId) throws IOException {
+    public static boolean checkOutCommit (String checkedOutBranchId) {
 
         // check conflict that untracked currently and tracked in checked out
         Commit nowCommit = loadHead();
@@ -708,7 +708,7 @@ public class Repository {
             System.out.println(); // Extra newline for spacing.
     }
 
-    private static String saveCommit(Commit commit) throws IOException {
+    private static String saveCommit(Commit commit) {
         String shaValue = sha1ByObject(commit);
         File commitFile = join(Commits, shaValue + ".txt");
         commitFile.createNewFile();
@@ -716,7 +716,7 @@ public class Repository {
         return shaValue;
     }
 
-    public static void writeFileFromBlob(String filePath, String blobId) throws IOException {
+    public static void writeFileFromBlob(String filePath, String blobId) {
         File blobFile = formBlobFile(blobId); // Helper to find the blob in .gitlet/objects
         byte[] BlobContent = new byte[0]; 
         BlobContent = Utils.readContents(blobFile); // read contents from blob and write it into destination file 
@@ -738,7 +738,7 @@ public class Repository {
         return Utils.join(CWD ,fileName);
     }
 
-    public static void alignCWDFiles(Map<String, String> nowCommitFiles, Map<String, String> checkedOutBranchFiles) throws IOException {
+    public static void alignCWDFiles(Map<String, String> nowCommitFiles, Map<String, String> checkedOutBranchFiles) {
         // if everything is ok then replace cwd with checked out branch and move head
         for (String filePath : nowCommitFiles.keySet()) {
             if (!checkedOutBranchFiles.containsKey(filePath)) {// delete target commit untraced files in cwd

@@ -71,11 +71,11 @@ public class Stage implements Serializable {
         return stagedForAddition.isEmpty() && stagedForRemoval.isEmpty();
     }
 
-    public void save() throws IOException {
+    public void save() {
         Utils.writeObject(Index, this);
     }
 
-    public static Stage load() throws IOException, ClassNotFoundException {
+    public static Stage load() {
         return Utils.readObject(Index, Stage.class);
     }
 
