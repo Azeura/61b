@@ -306,8 +306,8 @@ public class Repository {
         if (!checkGitDir()) {
             System.out.println("Have not init yet.");
         }
-        // Start with the commit ID stored in the HEAD file.
-        String currentCommitId = readContentsAsString(Head).trim();
+        File currBranchFile = new File(readContentsAsString(Head));
+        String currentCommitId = readContentsAsString(currBranchFile);
 
         // Loop backwards through the commit chain.
         while (currentCommitId != null && !currentCommitId.isEmpty()) {
