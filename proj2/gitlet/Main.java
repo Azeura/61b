@@ -17,7 +17,6 @@ public class Main {
             System.exit(0);
         }
         String firstArg = args[0];
-        try {
         switch(firstArg) {
             case "init":
                 Repository.setupPersistency();
@@ -69,4 +68,4 @@ public class Main {
         }
     } 
     }
-}
+
