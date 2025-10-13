@@ -121,7 +121,7 @@ public class Repository {
     }
 
     /*git add*/
-    public static void addIndex(String fileName) throws IOException, ClassNotFoundException {
+    public static void addIndex(String fileName) {
         if (!checkGitDir()) {
             System.out.println("Have not init yet.");
             System.exit(0);
@@ -156,7 +156,7 @@ public class Repository {
     }
 
     /*git rm*/
-    public static void rmIndex(String fileName) throws IOException, ClassNotFoundException {
+    public static void rmIndex(String fileName) {
         if (!checkGitDir()) {
             System.out.println("Have not init yet.");
             System.exit(0);
@@ -219,7 +219,7 @@ public class Repository {
         writeContents(cwdFile,targetContent);
     }
 
-    public static void checkOutBranch(String branchName) throws IOException, ClassNotFoundException {
+    public static void checkOutBranch(String branchName)  {
         if (!checkGitDir()) {
             System.out.println("Have not init yet.");
             System.exit(0);
@@ -401,7 +401,7 @@ public class Repository {
     }
 
     /* git merge */
-    public static void merge(String givenBranchName) throws IOException, ClassNotFoundException {
+    public static void merge(String givenBranchName) {
         if (!checkGitDir()) {
             System.out.println("Have not init yet.");
             System.exit(0);
@@ -624,7 +624,7 @@ public class Repository {
         return true;
     }
 
-    public static void status() throws IOException, ClassNotFoundException {
+    public static void status() {
         if (!checkGitDir()) {
             System.out.println("Have not init yet.");
             System.exit(0);
