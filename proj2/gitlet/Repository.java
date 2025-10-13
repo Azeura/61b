@@ -88,6 +88,8 @@ public class Repository {
         Date tm = new Date(0L);
         Map<String, String> fileTracked = new HashMap<>();
         Commit headCommit = loadHead();
+        String headCommitId = loadHeadId();
+        Map<String, String> newTrackedFiles = new HashMap<>(headCommit.getTrackedFiles());
         Stage nowStage = Stage.load();
         String currBranchFilePath = readContentsAsString(Head); // it could be master or other branch
         File currBranchFile = new File(currBranchFilePath); // read curr branch file path
@@ -100,9 +102,17 @@ public class Repository {
             System.exit(0);
         }
         // update tracked files map and serialize new commit
-        headCommit.updateMap(nowStage);
-        headCommit.changeMeta(paraMsg, tm, readContentsAsString(currBranchFile) );
-        String shaValue = Repository.saveCommit(headCommit);
+        for (Map.Entry<String, String> entry : nowStage.getStagedForAddition().entrySet()) {
+            newTrackedFiles.put(entry.getKey(), entry.getValue());
+        }
+        // Remove files from the staging area for removal
+        for (String filePath : nowStage.getStagedForRemoval().keySet()) {
+            newTrackedFiles.remove(filePath);
+        }
+        Commit newCommit = new Commit(paraMsg, tm, newTrackedFiles, headCommitId);
+        String shaValue = Repository.saveCommit(newCommit);
+        nowStage.clear();
+        nowStage.save();
         // update the pointer file content(shavalue of commit)
        writeContents(currBranchFile, shaValue);
        System.out.println("New commit added.");
@@ -138,8 +148,8 @@ public class Repository {
         // update stage for add and serialize blob 
         Stage nowStage = Stage.load();
         nowStage.addFile(filePath, blobHash);
-        nowStage.save();// update index
-        File blob = formBlobFile(blobHash); // save it as a blob
+        nowStage.save();
+        File blob = formBlobFile(blobHash);
         blob.createNewFile();
         writeContents(blob,readContentsAsString(fileToAdd));
         System.out.println("Add file successfully.");
@@ -209,7 +219,7 @@ public class Repository {
         writeContents(cwdFile,targetContent);
     }
 
-    public static void checkOutBranch(String branchName) throws IOException {
+    public static void checkOutBranch(String branchName) throws IOException, ClassNotFoundException {
         if (!checkGitDir()) {
             System.out.println("Have not init yet.");
             System.exit(0);
@@ -227,7 +237,12 @@ public class Repository {
             System.exit(0);
         }
         checkOutCommit(checkedOutCommitId);
+        Commit currCommit = loadCommitById(checkedOutCommitId);
+        Stage nowStage = Stage.load();
+        nowStage.clear();
+        nowStage.save();
         writeContents(Head,branch.getPath());
+
         System.out.println("checkout branch successfully");
     }
 
@@ -273,7 +288,7 @@ public class Repository {
 
     }
 
-    public static void reset(String commitId) throws IOException {
+    public static void reset(String commitId) throws IOException, ClassNotFoundException {
         if (!checkGitDir()) {
             System.out.println("Have not init yet.");
         }
@@ -284,6 +299,8 @@ public class Repository {
         if (checkOutCommit(commitId) ) {
             File currBranch = new File(readContentsAsString(Head));
             writeContents(currBranch, commitId);
+            Stage nowStage = Stage.load();
+            nowStage.clear();
             System.out.println("checkout to that commid successfully.");
         } else {
             System.out.println("Reset failed due to untracked files.");
@@ -443,6 +460,9 @@ public class Repository {
             // Check if file is untracked in current commit and exists in given commit
             if (!currentCommit.getTrackedFiles().containsKey(filePath) && givenCommit.getTrackedFiles().containsKey(filePath)) {
                 System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.out.println("The untracked File Path is:" + filePath);
+                System.out.println("current tracked files are:" + currentCommit.getTrackedFiles());
+                System.out.println("given commit tracked files are:" + givenCommit.getTrackedFiles());
                 System.exit(0);
             }
         }
@@ -638,6 +658,11 @@ public class Repository {
             System.out.println(fileName);
         }
  
+    }
+    static public void showFiles() {
+        Commit currCommit = loadHead();
+        System.out.println("head commit is:" + readContentsAsString(Head));
+        System.out.println(currCommit.getTrackedFiles());
     }
 
 
