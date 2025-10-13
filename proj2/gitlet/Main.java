@@ -67,10 +67,6 @@ public class Main {
                 Repository.showFiles();
                 break;
         }
-    } catch (IOException e) {
-            System.err.println("Error: " + e.getMessage());
-            System.exit(1);
-    }
-
+    } 
     }
 }
